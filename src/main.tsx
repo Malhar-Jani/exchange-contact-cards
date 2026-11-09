@@ -73,7 +73,7 @@ function App() {
   const fields: {key: keyof Card; label: string; placeholder: string; type?: string; autoComplete?: string}[] = [
     {key:'firstName',label:'First name',placeholder:'e.g. Malhar',autoComplete:'given-name'},
     {key:'lastName',label:'Last name',placeholder:'e.g. Jani',autoComplete:'family-name'},
-    {key:'phone',label:'Phone number',placeholder:'+91 98765 43210',type:'tel',autoComplete:'tel'},
+    {key:'phone',label:'Phone number',placeholder:'Phone number',type:'tel',autoComplete:'tel'},
     {key:'email',label:'Email address',placeholder:'you@example.com',type:'email',autoComplete:'email'},
     {key:'organization',label:'Company or organisation',placeholder:'Where you work or study',autoComplete:'organization'},
     {key:'title',label:'Role',placeholder:'What you do',autoComplete:'organization-title'},
