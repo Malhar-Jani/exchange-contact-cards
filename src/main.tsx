@@ -26,6 +26,8 @@ function App() {
   const [status, setStatus] = useState('');
   const [presenting, setPresenting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [trackerReady, setTrackerReady] = useState(false);
+  const tracker = import.meta.env.VITE_TRACKER_URL || 'https://contacts.businessclubdau.in';
   const dialog = useRef<HTMLDialogElement>(null);
   const payload = makeVCard(card);
   const name = fullName(card);
@@ -38,6 +40,14 @@ function App() {
     return () => { current = false; };
   }, [payload, valid]);
   useEffect(() => { if (!status) return; const timer = setTimeout(() => setStatus(''), 5000); return () => clearTimeout(timer); }, [status]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    fetch(new URL('/api/exchange', tracker), {signal: controller.signal, credentials: 'omit'})
+      .then(async response => {if(response.ok) setTrackerReady((await response.json()).available === true);})
+      .catch(() => setTrackerReady(false)).finally(() => clearTimeout(timeout));
+    return () => {clearTimeout(timeout); controller.abort();};
+  }, [tracker]);
   function persist(next: Preset[]) { try { localStorage.setItem(storageKey, JSON.stringify(next)); setPresets(next); return true; } catch { setStatus('Your browser could not save this preset. Downloads still work.'); return false; } }
   function save() {
     if (!valid || !event.trim()) return;
@@ -56,7 +66,6 @@ function App() {
   }
   function present() { dialog.current?.showModal(); setPresenting(true); }
   function collectReplies() {
-    const tracker = import.meta.env.VITE_TRACKER_URL || 'https://contacts.businessclubdau.in';
     const url = new URL('/exchange', tracker);
     url.hash = new URLSearchParams({draft: JSON.stringify({card,event})}).toString();
     window.open(url.toString(), '_blank', 'noopener,noreferrer');
@@ -95,7 +104,7 @@ function App() {
           <button className="button orange present-button" disabled={!qr} onClick={present}><Expand size={18}/>Show QR full screen<ArrowUpRight size={18}/></button>
           <div className="downloads"><button className="button outline" disabled={!qr || saving} onClick={imageDownload}><Download size={17}/>{saving ? 'Downloading…' : 'QR image'}</button><button className="button outline" disabled={!qr} onClick={() => download(new Blob([payload],{type:'text/vcard;charset=utf-8'}),`${name}.vcf`)}><FileDown size={17}/>Contact file</button></div>
           <p className="preview-tip"><Info size={16}/><span>The QR contains your details, not a link. It works offline. Saving steps vary by phone and scanner.</span></p>
-          <section className="share-back-option"><h3>Want their details back, too?</h3><p>Create a web QR connected to eSummit Contacts. They can save your card and leave their name and number. No signup for them.</p><button className="button outline" disabled={!valid || !event.trim()} onClick={collectReplies}>Create a share-back QR <ArrowUpRight size={16}/></button><span className="field-help">You sign in as the collector. This option needs internet and shows the event name on the shared page.</span></section>
+          <section className="share-back-option"><h3>Want their details back, too?</h3><p>Create a web QR connected to eSummit Contacts. They can save your card and leave their name and number. No signup for them.</p><button className="button outline" disabled={!valid || !event.trim() || !trackerReady} onClick={collectReplies}>Create a share-back QR <ArrowUpRight size={16}/></button><span className="field-help">{trackerReady ? 'You sign in as the collector. This option needs internet and shows the event name on the shared page.' : 'Share-back is not available yet. You can still use the offline QR above.'}</span></section>
         </aside>
       </div>
       <footer><span><ShieldCheck size={15}/>Your presets stay in this browser. Clearing browser data removes them.</span><span>Made for meeting people.</span></footer>
