@@ -55,6 +55,12 @@ function App() {
     try { const blob = await (await fetch(qr)).blob(); download(blob, `${name || 'contact'}-qr.png`); setStatus('QR image downloaded.'); } catch { setStatus('Could not download the image. Please try again.'); } finally { setSaving(false); }
   }
   function present() { dialog.current?.showModal(); setPresenting(true); }
+  function collectReplies() {
+    const tracker = import.meta.env.VITE_TRACKER_URL || 'https://contacts.businessclubdau.in';
+    const url = new URL('/exchange', tracker);
+    url.hash = new URLSearchParams({draft: JSON.stringify({card,event})}).toString();
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
+  }
   const fields: {key: keyof Card; label: string; placeholder: string; type?: string; autoComplete?: string}[] = [
     {key:'firstName',label:'First name',placeholder:'e.g. Malhar',autoComplete:'given-name'},
     {key:'lastName',label:'Last name',placeholder:'e.g. Jani',autoComplete:'family-name'},
@@ -89,6 +95,7 @@ function App() {
           <button className="button orange present-button" disabled={!qr} onClick={present}><Expand size={18}/>Show QR full screen<ArrowUpRight size={18}/></button>
           <div className="downloads"><button className="button outline" disabled={!qr || saving} onClick={imageDownload}><Download size={17}/>{saving ? 'Downloading…' : 'QR image'}</button><button className="button outline" disabled={!qr} onClick={() => download(new Blob([payload],{type:'text/vcard;charset=utf-8'}),`${name}.vcf`)}><FileDown size={17}/>Contact file</button></div>
           <p className="preview-tip"><Info size={16}/><span>The QR contains your details, not a link. It works offline. Saving steps vary by phone and scanner.</span></p>
+          <section className="share-back-option"><h3>Want their details back, too?</h3><p>Create a web QR connected to eSummit Contacts. They can save your card and leave their name and number. No signup for them.</p><button className="button outline" disabled={!valid || !event.trim()} onClick={collectReplies}>Create a share-back QR <ArrowUpRight size={16}/></button><span className="field-help">You sign in as the collector. This option needs internet and shows the event name on the shared page.</span></section>
         </aside>
       </div>
       <footer><span><ShieldCheck size={15}/>Your presets stay in this browser. Clearing browser data removes them.</span><span>Made for meeting people.</span></footer>

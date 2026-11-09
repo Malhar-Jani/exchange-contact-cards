@@ -10,9 +10,14 @@ Enter the details you want to share, save an event preset, and show or download 
 - Named local event presets, with explicit saving and deletion.
 - Event label stays private; contact note is included in the vCard.
 - Large presentation view, 1200px PNG download, and `.vcf` download.
-- No server, tracking, or network transmission of entered contact details.
+- The offline generator uses no server or tracking and keeps entered details in your browser.
+- Optional share-back QR creation through eSummit Contacts: recipients save your card and can submit their own details without an account. You sign in to the tracker as the collector.
 
 Presets stay in localStorage in the current browser and origin. They do not sync or constitute a backup. Clearing browser data deletes them. Downloaded QR images and vCards contain the selected personal details; anyone with them can read those details. Editing a preset does not change previously exported QR codes.
+
+**Create a share-back QR** opens the tracker's `/exchange` page with your draft in a URL fragment. That option shares your selected details and event name with the tracker when you create the web QR. Its replies are stored by the tracker under your collector identity and event. Share-back codes need internet and expire; the offline vCard QR remains available independently. The tracker must deploy the matching exchange endpoints and configure persistent storage/signing before the web flow is available.
+
+For a local integration trial, set `VITE_TRACKER_URL` to the isolated tracker origin before starting Vite. `node tests/tracker-integration.mjs` checks the tracker APIs and browser flow against an isolated local server at port 3187 (or `TRACKER_QA_URL`); it refuses non-local targets to avoid creating production test contacts.
 
 ## Development
 
